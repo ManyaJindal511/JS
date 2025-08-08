@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discussion App</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+    }
+    .container {
+        display: flex;
+        width: 100%;
+    }
+    .left-pane, .right-pane {
+        padding: 20px;
+        overflow-y: auto;
+    }
+    .left-pane {
+        width: 35%;
+        background-color: #f1f1f1;
+        border-right: 1px solid #ccc;
+    }
+    .right-pane {
+        width: 65%;
+        background-color: #fff;
+    }
+    h2 {
+        margin-top: 0;
+    }
+    .question-box {
+        background: white;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .question-box:hover {
+        background: #f9f9f9;
+    }
+    form input, form textarea, form button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    form button {
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        border: none;
+    }
+    form button:hover {
+        background-color: #0056b3;
+    }
+    .response {
+        background: #f1f1f1;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 4px;
+    }
+    .resolve-btn {
+        background-color: #28a745;
+        color: white;
+        padding: 8px 12px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .resolve-btn:hover {
+        background-color: #218838;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LEFT PANE -->
+    <div class="left-pane">
+        <h2>Questions</h2>
+        <div id="questionList"></div>
+    </div>
+
+    <!-- RIGHT PANE -->
+    <div class="right-pane" id="rightPane">
+        <h2>Ask a Question</h2>
+        <form id="questionForm">
+            <input type="text" id="qTitle" placeholder="Enter title" required>
+            <textarea id="qText" placeholder="Enter your question" rows="4" required></textarea>
+            <button type="submit">Submit Question</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const questionForm = document.getElementById("questionForm");
+    const qTitle = document.getElementById("qTitle");
+    const qText = document.getElementById("qText");
+    const questionList = document.getElementById("questionList");
+    const rightPane = document.getElementById("rightPane");
+
+    let questions = [];
+
+    // Submit Question
+    questionForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        const newQuestion = {
+            id: Date.now(),
+            title: qTitle.value.trim(),
+            text: qText.value.trim(),
+            responses: []
+        };
+        questions.push(newQuestion);
+        renderQuestionList();
+        questionForm.reset();
+    });
+
+    // Render Question List
+    function renderQuestionList() {
+        questionList.innerHTML = "";
+        questions.forEach(q => {
+            const div = document.createElement("div");
+            div.className = "question-box";
+            div.innerHTML = `<strong>${q.title}</strong><p>${q.text}</p>`;
+            div.addEventListener("click", () => openQuestion(q.id));
+            questionList.appendChild(div);
+        });
+    }
+
+    // Open Question Details
+    function openQuestion(id) {
+        const question = questions.find(q => q.id === id);
+        rightPane.innerHTML = `
+            <h2>${question.title}</h2>
+            <p>${question.text}</p>
+
+            <h3>Responses</h3>
+            <div id="responses">
+                ${question.responses.map(r => `
+                    <div class="response"><strong>${r.name}</strong>: ${r.comment}</div>
+                `).join("")}
+            </div>
+
+            <h3>Post a Response</h3>
+            <form id="responseForm">
+                <input type="text" id="resName" placeholder="Your name" required>
+                <textarea id="resComment" placeholder="Your comment" rows="3" required></textarea>
+                <button type="submit">Submit Response</button>
+            </form>
+            <button class="resolve-btn" id="resolveBtn">Resolve</button>
+        `;
+
+        // Handle Response Submission
+        document.getElementById("responseForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const name = document.getElementById("resName").value.trim();
+            const comment = document.getElementById("resComment").value.trim();
+            if (!name || !comment) return;
+
+            question.responses.push({ name, comment });
+            openQuestion(id); // re-render to show new response
+        });
+
+        // Resolve Button
+        document.getElementById("resolveBtn").addEventListener("click", function() {
+            questions = questions.filter(q => q.id !== id);
+            renderQuestionList();
+            loadDefaultForm();
+        });
+    }
+
+    // Load Default Ask Form
+    function loadDefaultForm() {
+        rightPane.innerHTML = `
+            <h2>Ask a Question</h2>
+            <form id="questionForm">
+                <input type="text" id="qTitle" placeholder="Enter title" required>
+                <textarea id="qText" placeholder="Enter your question" rows="4" required></textarea>
+                <button type="submit">Submit Question</button>
+            </form>
+        `;
+        // Reattach listener
+        document.getElementById("questionForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const title = document.getElementById("qTitle").value.trim();
+            const text = document.getElementById("qText").value.trim();
+            if (!title || !text) return;
+            const newQuestion = { id: Date.now(), title, text, responses: [] };
+            questions.push(newQuestion);
+            renderQuestionList();
+            loadDefaultForm();
+        });
+    }
+</script>
+
+</body>
+</html>
