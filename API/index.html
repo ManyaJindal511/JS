@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Repo Fetcher</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        width: 350px;
+        text-align: center;
+    }
+    input {
+        padding: 10px;
+        width: 70%;
+        margin-right: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    button {
+        padding: 10px 15px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+    li {
+        margin: 8px 0;
+    }
+    a {
+        text-decoration: none;
+        color: #007bff;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>GitHub Repo Fetcher</h2>
+    <form id="repoForm">
+        <input type="text" id="username" placeholder="Github username..." required>
+        <button type="submit">Fetch</button>
+    </form>
+    <ul id="repoList"></ul>
+</div>
+
+<script>
+document.getElementById("repoForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // ✅ Prevent form submission
+
+    const username = document.getElementById("username").value.trim();
+    if (!username) return;
+
+    const repoList = document.getElementById("repoList");
+    repoList.innerHTML = "<li>Loading...</li>";
+
+    // ✅ AJAX call using fetch
+    fetch(`https://api.github.com/users/${username}/repos`)
+        .then(response => response.json())
+        .then(data => {
+            repoList.innerHTML = ""; 
+            if (data.message === "Not Found") {
+                repoList.innerHTML = "<li>User not found</li>";
+                return;
+            }
+            data.forEach(repo => {
+                let li = document.createElement("li");
+                let link = document.createElement("a");
+                link.href = repo.html_url;
+                link.target = "_blank"; // ✅ Open in new tab
+                link.textContent = repo.name;
+                li.appendChild(link);
+                repoList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            repoList.innerHTML = "<li>Error fetching repos</li>";
+            console.error(error);
+        });
+});
+</script>
+
+</body>
+</html>
