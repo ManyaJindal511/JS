@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pomodoro Clock</title>
+<style>
+    body {
+        margin: 0;
+        background: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .container {
+        width: 220px;
+        height: 460px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .time-display {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5em;
+        background-color: rgba(255,255,255,0.05);
+    }
+    .controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+        padding: 10px;
+    }
+    .control-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .control-section span {
+        font-size: 1em;
+    }
+    .control-buttons {
+        display: flex;
+        align-items: center;
+    }
+    .control-buttons button {
+        background: gray;
+        border: none;
+        color: white;
+        font-size: 1.2em;
+        margin: 0 5px;
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+    }
+    .main-buttons {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .main-buttons button {
+        flex: 1;
+        padding: 10px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        cursor: pointer;
+        color: white;
+    }
+    .start-btn {
+        background-color: green;
+    }
+    .reset-btn {
+        background-color: red;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="time-display" id="timeDisplay">25:00</div>
+    <div class="controls">
+        <div class="control-section">
+            <span>Session Time:</span>
+            <div class="control-buttons">
+                <button id="sessionMinus">-</button>
+                <span id="sessionTime">25</span>
+                <button id="sessionPlus">+</button>
+            </div>
+        </div>
+        <div class="control-section">
+            <span>Break Time:</span>
+            <div class="control-buttons">
+                <button id="breakMinus">-</button>
+                <span id="breakTime">5</span>
+                <button id="breakPlus">+</button>
+            </div>
+        </div>
+        <div class="main-buttons">
+            <button id="startBtn" class="start-btn">Start</button>
+            <button id="resetBtn" class="reset-btn">Reset</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let sessionTime = 25;
+    let breakTime = 5;
+    let isRunning = false;
+    let isSession = true;
+    let timer;
+    let remainingSeconds = sessionTime * 60;
+
+    const timeDisplay = document.getElementById('timeDisplay');
+    const sessionTimeDisplay = document.getElementById('sessionTime');
+    const breakTimeDisplay = document.getElementById('breakTime');
+
+    function updateDisplay() {
+        let minutes = Math.floor(remainingSeconds / 60);
+        let seconds = remainingSeconds % 60;
+        timeDisplay.textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function toggleControls(disabled) {
+        document.getElementById('sessionMinus').disabled = disabled;
+        document.getElementById('sessionPlus').disabled = disabled;
+        document.getElementById('breakMinus').disabled = disabled;
+        document.getElementById('breakPlus').disabled = disabled;
+    }
+
+    function startTimer() {
+        isRunning = true;
+        toggleControls(true);
+        timer = setInterval(() => {
+            remainingSeconds--;
+            updateDisplay();
+            if (remainingSeconds <= 0) {
+                isSession = !isSession;
+                remainingSeconds = (isSession ? sessionTime : breakTime) * 60;
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+        isRunning = false;
+        toggleControls(false);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+        if (!isRunning) {
+            startTimer();
+            document.getElementById('startBtn').textContent = "Pause";
+        } else {
+            stopTimer();
+            document.getElementById('startBtn').textContent = "Start";
+        }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        stopTimer();
+        sessionTime = 25;
+        breakTime = 5;
+        isSession = true;
+        remainingSeconds = sessionTime * 60;
+        sessionTimeDisplay.textContent = sessionTime;
+        breakTimeDisplay.textContent = breakTime;
+        updateDisplay();
+        document.getElementById('startBtn').textContent = "Start";
+    });
+
+    document.getElementById('sessionPlus').addEventListener('click', () => {
+        sessionTime++;
+        sessionTimeDisplay.textContent = sessionTime;
+        if (isSession) remainingSeconds = sessionTime * 60;
+        updateDisplay();
+    });
+
+    document.getElementById('sessionMinus').addEventListener('click', () => {
+        if (sessionTime > 0) {
+            sessionTime--;
+            sessionTimeDisplay.textContent = sessionTime;
+            if (isSession) remainingSeconds = sessionTime * 60;
+            updateDisplay();
+        }
+    });
+
+    document.getElementById('breakPlus').addEventListener('click', () => {
+        breakTime++;
+        breakTimeDisplay.textContent = breakTime;
+    });
+
+    document.getElementById('breakMinus').addEventListener('click', () => {
+        if (breakTime > 0) {
+            breakTime--;
+            breakTimeDisplay.textContent = breakTime;
+        }
+    });
+
+    updateDisplay();
+</script>
+
+</body>
+</html>
